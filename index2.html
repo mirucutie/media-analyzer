@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализатор медиа-контента | Забвение</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #1a202c; color: #e2e8f0; }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg shadow-xl">
+        <h1 class="text-3xl font-bold mb-6 text-center text-blue-400">Забвение: Анализ</h1>
+        <textarea id="inputText" class="w-full h-48 p-4 bg-gray-700 border border-gray-600 rounded-md text-gray-200" placeholder="Вставьте текст..."></textarea>
+        <button id="analyzeButton" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md">Анализировать</button>
+        <div id="loadingIndicator" class="mt-4 text-center text-blue-400 hidden">Запрос к ИИ...</div>
+        <div id="output" class="mt-8 p-6 bg-gray-900 rounded-md border border-blue-900 hidden">
+            <h2 class="text-xl font-semibold mb-4 text-blue-300">Результат:</h2>
+            <div id="outputText" class="whitespace-pre-wrap text-gray-200"></div>
+        </div>
+        <div id="errorOutput" class="mt-4 p-4 bg-red-900 rounded-md text-red-200 hidden">
+            <pre id="errorText"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyAL9JfYmrHJOVoG6bi2o-UWFuCHblF1-Ig'; 
+
+        document.getElementById('analyzeButton').addEventListener('click', async () => {
+            const text = document.getElementById('inputText').value.trim();
+            if (!text) return alert('Введите текст');
+
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('output').classList.add('hidden');
+            document.getElementById('errorOutput').classList.add('hidden');
+
+            try {
+                // Используем модель flash-8b (она часто стабильнее обходит блокировки)
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${API_KEY}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Проанализируй текст: "${text}". Выдай эмоцию и уровень манипуляции.` }] }]
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error ? data.error.message : 'Ошибка доступа');
+
+                document.getElementById('outputText').textContent = data.candidates[0].content.parts[0].text;
+                document.getElementById('output').classList.remove('hidden');
+            } catch (e) {
+                document.getElementById('errorText').textContent = e.message;
+                document.getElementById('errorOutput').classList.remove('hidden');
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
