@@ -3,85 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анализатор | Забвение</title>
+    <title>Промпт-Разведчик | Анализ Текста</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #1a202c; color: #e2e8f0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .shimmer {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 200% auto;
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg shadow-xl">
-        <h1 class="text-3xl font-bold mb-6 text-center text-blue-400">Забвение: Анализ</h1>
-        <textarea id="inputText" class="w-full h-48 p-4 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500" placeholder="Вставьте текст для анализа..."></textarea>
-        <button id="analyzeButton" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md transition transform active:scale-95">Анализировать</button>
-        
-        <div id="loadingIndicator" class="mt-4 text-center text-blue-400 hidden animate-pulse">🔮 Идет обращение к нейросети...</div>
-        
-        <div id="output" class="mt-8 p-6 bg-gray-900 rounded-md border border-blue-900 hidden">
-            <h2 class="text-xl font-semibold mb-4 text-blue-300">Результат анализа:</h2>
-            <div id="outputText" class="whitespace-pre-wrap text-gray-200 leading-relaxed"></div>
+<body class="text-slate-200 p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold mb-4 shimmer bg-clip-text text-transparent italic">
+                ПРОМПТ-РАЗВЕДЧИК
+            </h1>
+            <p class="text-slate-400 text-lg">Нейросетевой анализ тональности и скрытых манипуляций</p>
+        </header>
+
+        <div class="glass rounded-3xl p-6 md:p-8 shadow-2xl mb-8">
+            <label class="block text-sm font-semibold uppercase tracking-wider text-blue-400 mb-2">Входные данные</label>
+            <textarea id="inputText" 
+                class="w-full h-48 bg-slate-900/50 border border-slate-700 rounded-2xl p-4 text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-500 mb-6"
+                placeholder="Вставьте текст, который нужно проверить..."></textarea>
+            
+            <button id="analyzeButton" 
+                class="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 transition transform active:scale-[0.98] flex items-center justify-center gap-2">
+                <span>ЗАПУСТИТЬ АНАЛИЗ</span>
+                <svg id="loader" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            </button>
         </div>
 
-        <div id="errorOutput" class="mt-4 p-4 bg-red-900 rounded-md text-red-200 hidden">
-            <h2 class="text-xl font-semibold mb-2 text-red-300">Внимание:</h2>
-            <pre id="errorText" class="whitespace-pre-wrap text-red-100"></pre>
+        <div id="output" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass p-5 rounded-2xl border-l-4 border-blue-500">
+                    <span class="text-xs text-slate-400 uppercase">Эмоция</span>
+                    <div id="resEmotion" class="text-xl font-bold text-blue-300 mt-1">—</div>
+                </div>
+                <div class="glass p-5 rounded-2xl border-l-4 border-violet-500">
+                    <span class="text-xs text-slate-400 uppercase">Манипуляция</span>
+                    <div id="resManip" class="text-xl font-bold text-violet-300 mt-1">0/10</div>
+                </div>
+                <div class="glass p-5 rounded-2xl border-l-4 border-emerald-500">
+                    <span class="text-xs text-slate-400 uppercase">Статус</span>
+                    <div class="text-xl font-bold text-emerald-300 mt-1">Готово</div>
+                </div>
+            </div>
+            
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3 text-center">Подробный вердикт</h3>
+                <div id="resFull" class="text-slate-200 leading-relaxed text-lg"></div>
+            </div>
         </div>
+
+        <div id="errorBlock" class="hidden mt-4 p-4 bg-red-900/20 border border-red-500/50 rounded-2xl text-red-300 text-sm italic text-center"></div>
     </div>
 
     <script>
-        // Новый ключ подруги
-        const API_KEY = 'AIzaSyCOs1of7Sa_kZ-4PmOS9aCm6S1Qh8q0BXg'; 
-
+        const API_KEY = 'AIzaSyCOs1of7Sa_kZ-4PmOS9aCm6S1Qh8q0BXg';
         const analyzeButton = document.getElementById('analyzeButton');
-        const output = document.getElementById('output');
-        const outputText = document.getElementById('outputText');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const errorOutput = document.getElementById('errorOutput');
-        const errorText = document.getElementById('errorText');
+        const loader = document.getElementById('loader');
 
         analyzeButton.addEventListener('click', async () => {
-            const textToAnalyze = document.getElementById('inputText').value.trim();
-            if (!textToAnalyze) return alert('Пожалуйста, введите текст.');
+            const text = document.getElementById('inputText').value.trim();
+            if (!text) return;
 
-            loadingIndicator.classList.remove('hidden');
-            output.classList.add('hidden');
-            errorOutput.classList.add('hidden');
+            // Сброс интерфейса
+            analyzeButton.disabled = true;
+            loader.classList.remove('hidden');
+            document.getElementById('output').classList.add('hidden');
+            document.getElementById('errorBlock').classList.add('hidden');
 
             try {
-                // Используем стабильную модель 1.5-flash-8b
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${API_KEY}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
                 
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ 
-                            parts: [{ 
-                                text: `Ты эксперт-аналитик. Проанализируй текст: "${textToAnalyze}". Выдай на русском языке: 1) Основную эмоцию, 2) Уровень манипуляции (0-10), 3) Краткий вердикт.` 
-                            }] 
-                        }]
+                        contents: [{ parts: [{ text: `Проанализируй текст: "${text}". Выдай ответ строго в формате JSON: {"emotion": "название", "manipulation": "число от 0 до 10", "verdict": "текст анализа на русском"}` }] }]
                     })
                 });
 
                 const data = await response.json();
+                if (!response.ok) throw new Error(data.error?.message || 'Ошибка API');
 
-                if (!response.ok) {
-                    throw new Error(data.error ? data.error.message : 'Ошибка доступа. Проверьте VPN (США/Европа).');
-                }
+                // Парсинг ответа
+                const rawText = data.candidates[0].content.parts[0].text;
+                // Очистка JSON от возможных markdown-тегов
+                const cleanJson = rawText.replace(/```json|```/g, "").trim();
+                const result = JSON.parse(cleanJson);
 
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
-                    outputText.textContent = data.candidates[0].content.parts[0].text;
-                    output.classList.remove('hidden');
-                } else {
-                    throw new Error('Нейросеть прислала пустой ответ.');
-                }
+                // Заполнение данными
+                document.getElementById('resEmotion').textContent = result.emotion;
+                document.getElementById('resManip').textContent = result.manipulation + '/10';
+                document.getElementById('resFull').textContent = result.verdict;
 
-            } catch (error) {
-                errorText.textContent = error.message;
-                errorOutput.classList.remove('hidden');
-                console.error('Ошибка:', error);
+                document.getElementById('output').classList.remove('hidden');
+            } catch (e) {
+                document.getElementById('errorBlock').textContent = "Ошибка: Попробуйте включить VPN или проверьте ключ. (" + e.message + ")";
+                document.getElementById('errorBlock').classList.remove('hidden');
             } finally {
-                loadingIndicator.classList.add('hidden');
+                analyzeButton.disabled = false;
+                loader.classList.add('hidden');
             }
         });
     </script>
